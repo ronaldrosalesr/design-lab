@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novena del Trabajo — San Josemaría Escrivá</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+SC:wght@500;600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment: #f3ead9;
+    --parchment-deep: #e9dcc2;
+    --ink: #2b2016;
+    --ink-soft: #4a3b28;
+    --maroon: #6d1f24;
+    --maroon-deep: #4c1218;
+    --gold: #a9822f;
+    --gold-bright: #c79a3e;
+    --line: rgba(109,31,36,0.18);
+    --shadow: rgba(43,32,22,0.25);
+    --topbar-h: 64px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{ background: var(--maroon-deep); }
+
+  body{
+    font-family: 'EB Garamond', serif;
+    color: var(--ink);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    padding-top: var(--topbar-h);
+  }
+
+  body::before{
+    content:"";
+    position: fixed;
+    inset:0;
+    background:
+      radial-gradient(ellipse at 15% 10%, rgba(201,154,62,0.10), transparent 45%),
+      radial-gradient(ellipse at 85% 90%, rgba(201,154,62,0.08), transparent 50%),
+      linear-gradient(180deg, #3c0f14 0%, #4c1218 40%, #4c1218 60%, #3c0f14 100%);
+    z-index:-2;
+  }
+
+  body::after{
+    content:"";
+    position: fixed;
+    inset:0;
+    opacity:0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events:none;
+    z-index:-1;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    z-index: 100;
+    background: rgba(31,10,12,0.72);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(201,154,62,0.28);
+  }
+  .topbar-inner{
+    max-width: 780px;
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .logo{
+    font-family:'Cormorant SC', serif;
+    font-size: 17px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--parchment);
+  }
+  .logo .accent{ color: var(--gold-bright); }
+
+  .hamburger{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,154,62,0.4);
+    background: rgba(201,154,62,0.08);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    gap: 5px;
+    cursor:pointer;
+    transition: background 0.2s;
+    flex-shrink:0;
+  }
+  .hamburger:hover{ background: rgba(201,154,62,0.2); }
+  .hamburger span{
+    width: 16px; height: 1.5px;
+    background: var(--gold-bright);
+    display:block;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .hamburger.open span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger.open span:nth-child(2){ opacity: 0; }
+  .hamburger.open span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* ===== Menu overlay (drawer) ===== */
+  .menu-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(20,6,7,0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .menu-overlay.open{ opacity: 1; pointer-events: auto; }
+
+  .menu-drawer{
+    position: absolute;
+    top: var(--topbar-h);
+    right: 0;
+    width: min(340px, 86vw);
+    height: calc(100% - var(--topbar-h));
+    background: linear-gradient(180deg, #351012 0%, #250b0d 100%);
+    border-left: 1px solid rgba(201,154,62,0.3);
+    box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(.22,.68,0,1.01);
+    overflow-y: auto;
+    padding: 22px 0 40px;
+  }
+  .menu-overlay.open .menu-drawer{ transform: translateX(0); }
+
+  .menu-section-title{
+    font-family:'Cormorant SC', serif;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    opacity: 0.75;
+    padding: 10px 26px;
+  }
+
+  .menu-item{
+    display:flex;
+    align-items:baseline;
+    gap: 14px;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align:left;
+    padding: 14px 26px;
+    cursor: pointer;
+    color: rgba(243,234,217,0.82);
+    font-family:'Cormorant Garamond', serif;
+    font-size: 20px;
+    border-bottom: 1px solid rgba(201,154,62,0.1);
+    transition: background 0.2s, color 0.2s, padding-left 0.2s;
+  }
+  .menu-item .num{
+    font-family:'Cormorant SC', serif;
+    font-size: 13px;
+    color: var(--gold-bright);
+    min-width: 18px;
+  }
+  .menu-item:hover{ background: rgba(201,154,62,0.08); padding-left: 32px; }
+  .menu-item.active{
+    color: var(--gold-bright);
+    background: rgba(201,154,62,0.12);
+    font-weight: 600;
+  }
+  .menu-item.active .num{ color: var(--parchment); }
+
+  .stage{
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 26px 20px 60px;
+  }
+
+  /* Header (compact) */
+  header.hero{
+    text-align:center;
+    color: var(--parchment);
+    padding-bottom: 22px;
+    position: relative;
+  }
+
+  .eyebrow{
+    font-family:'Cormorant SC', serif;
+    letter-spacing: 0.38em;
+    font-size: 11px;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  .hero h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size: clamp(30px, 6vw, 46px);
+    line-height: 0.95;
+    margin: 10px 0 4px;
+    letter-spacing: 0.01em;
+  }
+
+  .hero h1 span{
+    display:inline;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--gold-bright);
+  }
+
+  .hero .subtitle{
+    font-family:'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(243,234,217,0.75);
+    margin-top: 4px;
+  }
+
+  .ornament{ width: 150px; height: 16px; margin: 16px auto 0; }
+  .ornament svg{ width:100%; height:100%; }
+
+  /* Card */
+  .card{
+    background: linear-gradient(180deg, var(--parchment) 0%, var(--parchment-deep) 100%);
+    border-radius: 4px;
+    box-shadow: 0 30px 60px var(--shadow), 0 2px 0 rgba(255,255,255,0.4) inset;
+    position: relative;
+    padding: 46px 42px 40px;
+    margin-top: 18px;
+  }
+  .card::before{
+    content:"";
+    position:absolute; inset: 10px;
+    border: 1px solid var(--line);
+    pointer-events:none;
+  }
+
+  .card-label{
+    font-family:'Cormorant SC', serif;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-size: 13px;
+    color: var(--maroon);
+    text-align:center;
+    margin-bottom: 14px;
+  }
+
+  .card h2.prayer-title{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    text-align:center;
+    font-size: 32px;
+    color: var(--maroon-deep);
+    margin-bottom: 22px;
+  }
+
+  .card p{ font-size: 19px; line-height: 1.75; color: var(--ink-soft); margin-bottom: 14px; }
+  .card p:last-child{ margin-bottom:0; }
+
+  .drop::first-letter{
+    font-family:'Cormorant Garamond', serif;
+    font-size: 3.2em; float:left; line-height: 0.8;
+    padding-right: 8px; padding-top: 4px;
+    color: var(--maroon); font-weight:600;
+  }
+
+  .padre-line{
+    text-align:center; margin-top:20px;
+    font-family:'Cormorant SC', serif; letter-spacing:0.12em;
+    text-transform:uppercase; font-size:14px; color:var(--maroon);
+  }
+
+  /* Panels */
+  .panel{ display:none; animation: reveal 0.5s ease; }
+  .panel.active{ display:block; }
+
+  @keyframes reveal{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .day-heading{ text-align:center; margin: 8px 0 24px; color: var(--parchment); }
+  .day-heading .day-num{
+    font-family:'Cormorant Garamond', serif; font-style: italic; font-weight:500;
+    font-size: 22px; color: var(--gold-bright);
+  }
+  .day-heading h3{
+    font-family:'Cormorant Garamond', serif; font-weight:600;
+    font-size: clamp(26px, 4.5vw, 36px); margin-top: 4px; letter-spacing: 0.01em;
+  }
+
+  .section-label{
+    font-family:'Cormorant SC', serif;
+    letter-spacing: 0.24em; text-transform: uppercase; font-size: 13px;
+    color: var(--maroon); margin: 0 0 12px;
+    display:flex; align-items:center; gap: 12px;
+  }
+  .section-label::after{ content:""; flex:1; height:1px; background: var(--line); }
+
+  .reflection blockquote{
+    font-family:'Cormorant Garamond', serif; font-style: italic;
+    font-size: 21px; line-height: 1.7; color: var(--ink-soft);
+    padding-left: 20px; border-left: 3px solid var(--gold); margin-bottom: 20px;
+  }
+  .reflection blockquote:last-child{ margin-bottom:0; }
+  .reflection cite{
+    display:block; font-family:'EB Garamond', serif; font-style: normal;
+    font-size: 14px; letter-spacing: 0.05em; color: var(--maroon); margin-top: 8px;
+  }
+
+  .petition-block{ margin-top: 30px; }
+  .petition-block p{ font-size: 18.5px; line-height: 1.75; color: var(--ink-soft); }
+
+  .prayer-close{
+    text-align:center; margin-top: 32px; padding-top: 22px;
+    border-top: 1px dashed var(--line);
+  }
+  .prayer-close .label{
+    font-family:'Cormorant SC', serif; letter-spacing:0.2em;
+    text-transform:uppercase; font-size: 13px; color: var(--maroon);
+  }
+  .prayer-close .rite{
+    font-family:'Cormorant Garamond', serif; font-style: italic;
+    font-size: 19px; color: var(--ink-soft); margin-top: 6px;
+  }
+
+  /* prev/next controls */
+  .flip-controls{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top: 30px; color: var(--parchment);
+  }
+  .flip-btn{
+    font-family:'Cormorant SC', serif; letter-spacing:0.14em; text-transform:uppercase;
+    font-size: 13px; background:none; border:none; color: var(--gold-bright);
+    cursor:pointer; padding: 8px 10px; display:flex; align-items:center; gap:8px;
+    transition: opacity 0.2s;
+  }
+  .flip-btn:hover{ opacity:0.7; }
+  .flip-btn:disabled{ opacity:0.25; cursor:default; }
+  .flip-btn.next{ margin-left:auto; }
+  .flip-progress{
+    font-family:'Cormorant Garamond', serif; font-style: italic;
+    color: rgba(243,234,217,0.7); font-size: 15px;
+  }
+
+  footer{
+    text-align:center; margin-top: 50px; color: rgba(243,234,217,0.55);
+    font-family:'Cormorant Garamond', serif; font-style: italic;
+    font-size: 14px; line-height:1.8;
+  }
+
+  @media (max-width: 560px){
+    .card{ padding: 34px 24px 30px; }
+    .stage{ padding-left: 14px; padding-right: 14px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">Novena <span class="accent">del Trabajo</span></div>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu-overlay" id="menuOverlay">
+    <nav class="menu-drawer">
+      <div class="menu-section-title">Navegación</div>
+      <div id="menuList"></div>
+    </nav>
+  </div>
+
+<div class="stage">
+
+  <header class="hero">
+    <div class="eyebrow">Novena · Nueve Días de Oración</div>
+    <h1>Novena <span>del Trabajo</span></h1>
+    <p class="subtitle">a San Josemaría Escrivá de Balaguer</p>
+    <div class="ornament">
+      <svg viewBox="0 0 220 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="11" x2="85" y2="11" stroke="#c79a3e" stroke-width="1"/>
+        <circle cx="110" cy="11" r="4" fill="#c79a3e"/>
+        <path d="M110 3 L110 19 M102 11 L118 11" stroke="#c79a3e" stroke-width="1"/>
+        <line x1="135" y1="11" x2="220" y2="11" stroke="#c79a3e" stroke-width="1"/>
+      </svg>
+    </div>
+  </header>
+
+  <div id="panelsContainer"></div>
+
+  <footer>
+    Autor: Francisco Faus &nbsp;·&nbsp; Autorización Eclesiástica: † D. Benedito Beni dos Santos,<br>
+    Obispo Auxiliar de San Pablo &nbsp;—&nbsp; San Pablo, 8 de abril de 2003
+  </footer>
+
+</div>
+
+<script>
+const days = [
+  {
+    title: "Trabajo, camino de santidad",
+    reflections: [
+      { text: "Hemos venido a llamar de nuevo la atención sobre el ejemplo de Jesús que, durante treinta años, permaneció en Nazareth trabajando, desempeñando un oficio. En manos de Jesús el trabajo, y un trabajo profesional similar al que desarrollan millones de hombres en el mundo, se convierte en tarea divina, en labor redentora, en camino de salvación.", src: "Conversaciones, n. 55" },
+      { text: "Allí donde están vuestros hermanos los hombres, allí donde están vuestras aspiraciones, vuestro trabajo, vuestros amores, allí está el sitio de vuestro encuentro cotidiano con Cristo (&hellip;) Dios nos espera cada día: en un laboratorio, en el quirófano de un hospital, en el cuartel, en la cátedra universitaria, en la fábrica, en el taller, en el campo, en el hogar de familia y en todo el inmenso panorama del trabajo.", src: "Conversaciones, n. 113-114" }
+    ],
+    findWork: "Para que Dios Nuestro Señor, me oriente en el esfuerzo de buscar trabajo, y me bendiga haciéndome conseguir un empleo honesto, digno y estable; y que, después, me ayude a ver mi tarea profesional como un camino de santificación y de servicio a los demás, donde mi Padre Dios me espera a todas las horas y me pide que imite a Jesús cuando trabajaba como carpintero en Nazareth.",
+    doWork: "Para que Dios Nuestro Señor me ayude a ver mi tarea profesional como un camino de santificación y de servicio a los demás, donde Él me espera a todas las horas y me pide, en todas las circunstancias, que imite a Jesús cuando trabajaba como carpintero en Nazareth."
+  },
+  {
+    title: "Trabajar por amor a Dios",
+    reflections: [
+      { text: "La dignidad del trabajo está fundada en el Amor. El gran privilegio del hombre es poder amar, trascendiendo así lo efímero y lo transitorio.", src: "Es Cristo que pasa, n. 48" },
+      { text: "Hacedlo todo por Amor. Así no hay cosas pequeñas: todo es grande. La perseverancia en las cosas pequeñas, por Amor, es heroísmo.", src: "Camino, n. 813" },
+      { text: "Insisto: en la sencillez de tu labor ordinaria, en los detalles monótonos de cada día, has de descubrir el secreto para tantos escondido de la grandeza y de la novedad: el Amor.", src: "Surco, n. 489" }
+    ],
+    findWork: "Para que Dios me conceda la gracia de conseguir prontamente un trabajo, que proporcione seguridad a mi familia. Y, al mismo tiempo, para que Él me ayude a comprender que lo que da valor a cualquier trabajo honrado es el amor con que lo hacemos: en primer lugar, amor a Dios, a quien le ofrecemos el trabajo; y amor al prójimo, a quien queremos servir y serle útil.",
+    doWork: "Para que Dios me ayude a comprender que lo que da valor a cualquier trabajo honesto es el amor con que lo hacemos: en primer lugar, amor a Dios, a quien le ofrecemos el trabajo; y amor al prójimo, a quien queremos servir y serle útil."
+  },
+  {
+    title: "Trabajar con orden y constancia",
+    reflections: [
+      { text: "¡Qué breve es la duración de nuestro paso por la tierra!&hellip; Verdaderamente es corto nuestro tiempo para amar, para dar, para desagraviar. No es justo, por tanto, que lo malgastemos (&hellip;) no podemos desbaratar esta etapa del mundo que Dios confía a cada uno.", src: "Amigos de Dios, n. 39" },
+      { text: "Cuando tengas orden se multiplicará tu tiempo, y, por tanto, podrás dar más gloria a Dios, trabajando más en su servicio.", src: "Camino, n. 80" }
+    ],
+    findWork: "Para que, con el auxilio de la Virgen, consiga un trabajo estable y apropiado. Y que, cuando por la bondad de Dios ya esté trabajando, sepa aprovechar el tiempo como un tesoro; y me esmere en mejorar la virtud del orden, de tal modo que consiga hacerlo todo con puntualidad, intensidad y constancia, sin confusiones ni retrasos, siguiendo un plan bien estructurado, que me permita dedicar, de forma equilibrada, los horarios convenientes a cada uno de mis deberes: vida espiritual, familia, profesión y relaciones sociales.",
+    doWork: "Para que, con el auxilio de la Virgen, sepa aprovechar el tiempo como un tesoro; y me esmere en mejorar la virtud del orden, de tal modo que consiga hacerlo todo con puntualidad, intensidad y constancia, sin confusiones ni retrasos, siguiendo un plan bien estructurado, que me permita dedicar, de forma equilibrada, los horarios convenientes a cada uno de mis deberes: vida espiritual, familia, profesión y relaciones sociales."
+  },
+  {
+    title: "Trabajo bien acabado",
+    reflections: [
+      { text: "No podemos ofrecer al Señor algo que, dentro de las pobres limitaciones humanas, no sea perfecto, sin tacha, efectuado atentamente también en los mínimos detalles: Dios no acepta las chapuzas. Por eso, el trabajo de cada uno ha de ser una ofrenda digna para el Creador: en una palabra, un quehacer cumplido, impecable.", src: "Amigos de Dios, n. 55" },
+      { text: "Ante todo, hemos de amar la Santa Misa que debe ser el centro de nuestro día. Si vivimos bien la Misa, ¿cómo no continuar luego el resto de la jornada con el pensamiento en el Señor, para trabajar como Él trabajaba y amar como Él amaba?", src: "Es Cristo que pasa, n. 154" }
+    ],
+    findWork: "Para que, con el auxilio de la Santísima Virgen, no tarde en resolverse el problema de mi desempleo. Y para que, al iniciar un trabajo nuevo, Dios me ayude a realizarlo con categoría, con la mayor perfección posible, sin hacer las tareas de cualquier modo, convencido de que un trabajo mal hecho no puede santificarse, porque le falta amor, que es la condición imprescindible para que cualquier actividad humana pueda ser agradable a Dios.",
+    doWork: "Para que Dios me ayude a realizar mi trabajo con categoría, con la mayor perfección posible, sin hacer las tareas de cualquier modo, convencido de que un trabajo mal hecho no puede santificarse, porque le falta amor, que es la condición imprescindible para que cualquier actividad humana pueda ser agradable a Dios."
+  },
+  {
+    title: "Todos los trabajos honrados son dignos",
+    reflections: [
+      { text: "Es hora de que los cristianos digamos muy alto que el trabajo es un don de Dios, y que no tiene ningún sentido dividir a los hombres en diversas categorías según los tipos de trabajo, considerando unas tareas más nobles que otras. El trabajo, todo trabajo, es testimonio de la dignidad del hombre.", src: "Es Cristo que pasa, n. 47" },
+      { text: "Ante Dios, ninguna ocupación es por sí misma grande ni pequeña. Todo adquiere el valor del Amor con que se realiza.", src: "Surco, n. 487" }
+    ],
+    findWork: "Para que Dios me conceda la alegría de conseguir trabajo, una ocupación en la que pueda ser útil y desarrollar todas mis capacidades. Y que si, por ahora, este trabajo es inferior a mi preparación y a mis aspiraciones legítimas, no lo desprecie, sino que mientras no encuentre otro trabajo más adecuado lo realice con toda responsabilidad, procurando que tenga la categoría del trabajo que Jesús realizó en el taller de Nazareth.",
+    doWork: "Para que si, actualmente, mi trabajo es inferior a mi preparación y a mis aspiraciones legítimas, no lo desprecie, sino que mientras no encuentre otro trabajo más adecuado lo realice con toda responsabilidad, procurando que tenga la categoría del trabajo que Jesús realizó en el taller de Nazareth."
+  },
+  {
+    title: "Trabajar en compañía de Dios y con rectitud de intención",
+    reflections: [
+      { text: "Debes mantener, a lo largo de la jornada, una constante conversación con el Señor, que se alimente también de las mismas incidencias de tu tarea profesional.", src: "Forja, n. 745" },
+      { text: "Por cristiano, debieras llevar siempre contigo tu Crucifijo. Y ponerlo sobre tu mesa de trabajo. Y besarlo antes de darte al descanso y al despertar.", src: "Camino, n. 302" },
+      { text: "Pon en tu mesa de trabajo, en la habitación, en tu cartera&hellip;, una imagen de Nuestra Señora, y dirígele la mirada al comenzar tu tarea, mientras la realizas y al terminarla. Ella te alcanzará la fuerza para hacer, de tu ocupación, un diálogo amoroso con Dios.", src: "Surco, n. 531" }
+    ],
+    findWork: "Para que Dios me conceda un empleo honrado y digno, y abra los ojos de mi alma para comprender que Él está siempre a mi lado. Que, para no perder de vista esta realidad maravillosa, me esfuerce en tener presencia de Dios durante el trabajo, sirviéndome discretamente, como de un despertador, de un crucifijo pequeño, de una estampa de la Virgen, de la imagen de otro santo de mi devoción; despertadores colocados donde yo los pueda ver con frecuencia, sin exhibicionismo ni alarde.",
+    doWork: "Para que Dios me haga comprender que Él está siempre a mi lado mientras estoy trabajando. Y que, para no perder de vista esa realidad maravillosa, me esfuerce en tener presencia de Dios durante el trabajo, sirviéndome discretamente de un crucifijo pequeño, de una estampa de la Virgen, de la imagen de otro santo de mi devoción; despertadores colocados donde yo los pueda ver con frecuencia, sin exhibicionismo ni alarde."
+  },
+  {
+    title: "Madurar en las virtudes por medio del trabajo",
+    reflections: [
+      { text: "Todo aquello en que intervenimos los pobrecitos hombres, hasta la santidad, es un tejido de pequeñas menudencias, que según la rectitud de intención pueden formar un tapiz espléndido de heroísmo o de bajeza, de virtudes o de pecados.", src: "Camino, n. 826" },
+      { text: "Es toda una trama de virtudes la que se pone en juego al desempeñar nuestro oficio, con el propósito de santificarlo: la fortaleza, para perseverar en nuestra labor; la templanza, para gastarse sin reservas; la justicia, para cumplir nuestros deberes con Dios, con la sociedad, con la familia, con los colegas; la prudencia, para saber en cada caso qué es lo que conviene hacer. Y todo por Amor.", src: "Amigos de Dios, n. 72" }
+    ],
+    findWork: "Para que, con la ayuda de la Virgen Santísima, encuentre el trabajo que busco. Y que, al asumir plenamente ese trabajo nuevo, Dios me ayude a desarrollar, por el modo de realizarlo, las virtudes cristianas y a madurar espiritualmente. Que procure ser paciente y comprensivo, tanto con los jefes como con los colegas y subordinados; que sea sencillo y humilde, huyendo de la vanidad y del exhibicionismo; que lo haga todo, en una palabra, con pureza de corazón.",
+    doWork: "Para que Dios me ayude a desarrollar las virtudes cristianas, en medio del trabajo, y a madurar espiritualmente, por el modo de realizarlo. Que procure ser paciente y comprensivo, tanto con los jefes como con los colegas y subordinados; que sea sencillo y humilde, huyendo de la vanidad y del exhibicionismo; que lo haga todo, en una palabra, con pureza de corazón."
+  },
+  {
+    title: "Trabajar es servir, ayudar a los demás",
+    reflections: [
+      { text: "Pensad que con vuestro quehacer profesional realizado con responsabilidad, además de sosteneros económicamente, prestáis un servicio directísimo al desarrollo de la sociedad, aliviáis también las cargas de los demás y mantenéis tantas obras asistenciales, a nivel local y universal, en pro de los individuos y de los pueblos menos favorecidos.", src: "Amigos de Dios, n. 120" }
+    ],
+    findWork: "Para que Dios Nuestro Señor me conceda el trabajo que le pido con tanta fe. Y para que infunda en mi alma el deseo de hacer de mi trabajo, no una actividad egoísta, encerrada en mis intereses, sino un servicio abierto al bien y a la utilidad de muchos, realizado con la certeza de que ese ideal de servicio a los demás dará a mi vida un sentido nuevo, más elevado y alegre.",
+    doWork: "Para que Dios infunda en mi alma el deseo de hacer de mi trabajo, no una actividad egoísta, encerrada en mis intereses, sino un servicio abierto al bien y a la utilidad de muchos, realizado con la certeza de que ese ideal de servicio a los demás dará a mi vida un sentido nuevo, más elevado y alegre."
+  },
+  {
+    title: "Hacer apostolado con nuestro trabajo",
+    reflections: [
+      { text: "El trabajo profesional es también apostolado, ocasión de entrega a los demás hombres, para revelarles a Cristo y llevarles hacia Dios Padre.", src: "Es Cristo que pasa, n. 49" },
+      { text: "Vive tu vida ordinaria; trabaja donde estás, procurando cumplir los deberes de tu estado, acabar bien la labor de tu profesión o de tu oficio, creciéndote, mejorando cada jornada. Sé leal, comprensivo con los demás y exigente contigo mismo. Sé mortificado y alegre. Ese será tu apostolado.", src: "Amigos de Dios, n. 273" }
+    ],
+    findWork: "Para que Dios, por mediación de Nuestra Señora, me haga encontrar un buen trabajo, en el cual pueda crecer profesionalmente y dar lo mejor de mí. Y que me ayude a ver, en el ambiente profesional, un campo abierto a la realización de la misión apostólica que Dios confía a todos los bautizados, aprovechando las oportunidades que Él me da para ayudar a colegas, amigos, colaboradores, clientes, etc., a descubrir las maravillas de la fe cristiana.",
+    doWork: "Para que Dios me ayude a ver, en el ambiente profesional, un campo abierto a la realización de la misión apostólica que Dios confía a todos los bautizados, aprovechando las oportunidades que Él me da para ayudar a colegas, amigos, colaboradores, clientes, etc., a descubrir las maravillas de la fe cristiana."
+  }
+];
+
+const menuList = document.getElementById('menuList');
+const panelsContainer = document.getElementById('panelsContainer');
+const menuOverlay = document.getElementById('menuOverlay');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const totalPanels = days.length + 1;
+
+// ---- Build menu items ----
+const prayerItem = document.createElement('button');
+prayerItem.className = 'menu-item';
+prayerItem.dataset.index = 0;
+prayerItem.innerHTML = `<span class="num">&#10013;</span><span>Oración a San Josemaría</span>`;
+prayerItem.addEventListener('click', () => { showPanel(0); closeMenu(); });
+menuList.appendChild(prayerItem);
+
+days.forEach((d, i) => {
+  const item = document.createElement('button');
+  item.className = 'menu-item';
+  item.dataset.index = i + 1;
+  item.innerHTML = `<span class="num">${i + 1}</span><span>${d.title}</span>`;
+  item.addEventListener('click', () => { showPanel(i + 1); closeMenu(); });
+  menuList.appendChild(item);
+});
+
+// ---- Hamburger toggle ----
+hamburgerBtn.addEventListener('click', () => {
+  const isOpen = menuOverlay.classList.toggle('open');
+  hamburgerBtn.classList.toggle('open', isOpen);
+});
+menuOverlay.addEventListener('click', (e) => {
+  if (e.target === menuOverlay) closeMenu();
+});
+function closeMenu(){
+  menuOverlay.classList.remove('open');
+  hamburgerBtn.classList.remove('open');
+}
+
+// ---- Build prayer panel ----
+const prayerPanel = document.createElement('section');
+prayerPanel.className = 'panel';
+prayerPanel.id = 'panel-0';
+prayerPanel.innerHTML = `
+  <div class="card">
+    <div class="card-label">Oración a San Josemaría</div>
+    <h2 class="prayer-title">Antes de comenzar</h2>
+    <p class="drop">Oh Dios, que por mediación de la Santísima Virgen otorgaste a San Josemaría, sacerdote, gracias innumerables, escogiéndole como instrumento fidelísimo para fundar el Opus Dei, camino de santificación en el trabajo profesional y en el cumplimiento de los deberes ordinarios del cristiano: haz que yo sepa también convertir todos los momentos y circunstancias de mi vida en ocasión de amarte, y de servir con alegría y con sencillez a la Iglesia, al Romano Pontífice y a las almas, iluminando los caminos de la tierra con la luminaria de la fe y del amor.</p>
+    <p>Concédeme por la intercesión de San Josemaría el favor que te pido&hellip; <em>(pídase)</em>. Así sea.</p>
+    <p class="padre-line">Padrenuestro, Avemaría, Gloria</p>
+  </div>
+  <div class="flip-controls">
+    <button class="flip-btn prev" disabled>&larr; Anterior</button>
+    <span class="flip-progress">Oración inicial</span>
+    <button class="flip-btn next">Día 1 &rarr;</button>
+  </div>
+`;
+panelsContainer.appendChild(prayerPanel);
+prayerPanel.querySelector('.flip-btn.next').addEventListener('click', () => showPanel(1));
+
+// ---- Build day panels ----
+days.forEach((d, i) => {
+  const index = i + 1;
+  const panel = document.createElement('section');
+  panel.className = 'panel';
+  panel.id = 'panel-' + index;
+
+  panel.innerHTML = `
+    <div class="day-heading">
+      <div class="day-num">Día ${i + 1}</div>
+      <h3>${d.title}</h3>
+    </div>
+    <div class="card">
+      <div class="reflection">
+        <p class="section-label">Reflexión &middot; Palabras de San Josemaría</p>
+        ${d.reflections.map(r => `<blockquote>${r.text}<cite>${r.src}</cite></blockquote>`).join('')}
+      </div>
+
+      <div class="petition-block">
+        <p class="section-label">Para encontrar trabajo</p>
+        <p>${d.findWork}</p>
+      </div>
+
+      <div class="petition-block">
+        <p class="section-label">Para realizar un buen trabajo</p>
+        <p>${d.doWork}</p>
+      </div>
+
+      <div class="prayer-close">
+        <div class="label">Rezar</div>
+        <div class="rite">la Oración a San Josemaría</div>
+      </div>
+    </div>
+
+    <div class="flip-controls">
+      <button class="flip-btn prev">&larr; ${i === 0 ? 'Oración' : 'Día ' + i}</button>
+      <span class="flip-progress">${i + 1} de ${days.length}</span>
+      <button class="flip-btn next" ${index === totalPanels - 1 ? 'disabled' : ''}>${index === totalPanels - 1 ? 'Fin' : 'Día ' + (i + 2)} &rarr;</button>
+    </div>
+  `;
+
+  panelsContainer.appendChild(panel);
+
+  panel.querySelector('.flip-btn.prev').addEventListener('click', () => showPanel(index - 1));
+  const nextBtn = panel.querySelector('.flip-btn.next');
+  if (index < totalPanels - 1) {
+    nextBtn.addEventListener('click', () => showPanel(index + 1));
+  }
+});
+
+function showPanel(index){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + index).classList.add('active');
+  document.querySelector(`.menu-item[data-index="${index}"]`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+showPanel(0);
+</script>
+</body>
+</html>
