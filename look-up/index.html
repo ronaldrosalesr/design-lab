@@ -355,14 +355,20 @@
   </div>
   <div class="field">
     <label for="fname">Your first name</label>
-    <input id="fname" autocomplete="given-name" placeholder="Shown to the people you send to">
+    <input id="fname" autocomplete="given-name" placeholder="Ana" required>
+    <span class="hint" id="fname-hint" data-default="Shown to the people you send moments to.">Shown to the people you send moments to.</span>
+  </div>
+  <div class="field">
+    <label for="email">Your email</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="ana@example.com" required>
+    <span class="hint" id="email-hint" data-default="For your receipt and the link to your pack.">For your receipt and the link to your pack.</span>
   </div>
   <p class="note">Any amount gives you exactly 10 moments. Anything above <span data-base></span> is an extra donation.</p>
   <div class="pay">
     <button class="btn" id="pay-wallet"></button>
     <button class="btn card" id="pay-card">Donate with card</button>
   </div>
-  <p class="fine">Prototype: no payment is taken. Receipt and your pack link go to the email on your wallet.</p>
+  <p class="fine">Prototype: no payment is taken and no email is sent.</p>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -565,6 +571,15 @@ function openGive() {
   selectAmt(String(amount));
   $("#scrim").classList.add("on"); $("#sheet").classList.add("on");
 }
+function fieldError(id, msg) {
+  const h = $("#" + id + "-hint");
+  h.textContent = msg; h.classList.add("err"); $("#" + id).focus();
+}
+function fieldReset(e) {
+  const h = $("#" + e.target.id + "-hint");
+  if (h && h.dataset.default) { h.textContent = h.dataset.default; h.classList.remove("err"); }
+}
+
 function closeGive() { $("#scrim").classList.remove("on"); $("#sheet").classList.remove("on"); }
 
 function selectAmt(v) {
@@ -588,11 +603,13 @@ function pay() {
     return;
   }
   const name = $("#fname").value.trim();
-  if (!name) { $("#fname").focus(); toast("Add your first name, it goes on your moments."); return; }
+  const email = $("#email").value.trim();
+  if (!name) return fieldError("fname", "Add your first name. It goes on the moments you send.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fieldError("email", "Enter an email like ana@example.com so we can send your receipt.");
   const btn = $("#pay-wallet"); btn.textContent = "Processing…"; btn.style.opacity = .6;
   setTimeout(() => {
     btn.style.opacity = 1;
-    state.pack = { name, amount, sent: 0, opens: 0, group: slug() };
+    state.pack = { name, email, amount, sent: 0, opens: 0, group: slug() };
     store.set("pack", state.pack);
     closeGive(); haptic(30);
     renderSend();
@@ -675,6 +692,8 @@ $$("[data-open-give]").forEach(b => b.onclick = openGive);
 $("#scrim").onclick = closeGive;
 $("#amounts").onclick = e => { const b = e.target.closest(".amt"); if (b) selectAmt(b.dataset.v); };
 $("#custom").oninput = e => { amount = parseFloat(e.target.value) || 0; $("#custom-hint").textContent = ""; $("#custom-hint").classList.remove("err"); updatePay(); };
+$("#fname").oninput = fieldReset;
+$("#email").oninput = fieldReset;
 $("#pay-wallet").onclick = pay;
 $("#pay-card").onclick = pay;
 $$(".seg button").forEach(b => b.onclick = () => {
