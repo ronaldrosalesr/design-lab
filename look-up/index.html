@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123c3a">
+<title>Look Up for More</title>
+<meta name="description" content="Thirty seconds to look up, from VIANYC.">
+<link rel="canonical" href="https://lab.ronaldrosales.com/look-up/?from=Ronald">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Look Up for More">
+<meta property="og:title" content="Ronald sent you a moment">
+<meta property="og:description" content="Thirty seconds to look up, from VIANYC.">
+<meta property="og:url" content="https://lab.ronaldrosales.com/look-up/?from=Ronald">
+<meta property="og:image" content="https://lab.ronaldrosales.com/look-up/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Ronald sent you a moment, from VIANYC">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ronald sent you a moment">
+<meta name="twitter:description" content="Thirty seconds to look up, from VIANYC.">
+<meta name="twitter:image" content="https://lab.ronaldrosales.com/look-up/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Tenant tokens: set from ORG.colors at boot so each charity brings its own palette. */
+  :root {
+    --brand: #123c3a;
+    --brand-ink: #f4efe6;
+    --accent: #e7b66b;
+    --paper: #f4efe6;
+    --ink: #1d2523;
+    --muted: #5d6b67;
+    --line: rgba(29, 37, 35, .12);
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    background: var(--brand);
+    color: var(--brand-ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; }
+
+  /* Screens: one full-bleed layer each, cross-faded. */
+  .screen {
+    position: fixed; inset: 0;
+    height: 100dvh;
+    display: flex; flex-direction: column;
+    padding: calc(var(--safe-t) + 48px) 24px calc(var(--safe-b) + 32px);
+    opacity: 0; visibility: hidden;
+    transition: opacity 1.2s ease, visibility 0s linear 1.2s;
+    overflow-y: auto;
+  }
+  .screen.on { opacity: 1; visibility: visible; transition: opacity 1.2s ease; }
+  .wrap { width: 100%; max-width: 440px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; }
+
+  .org { display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; opacity: .8; }
+  .org-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: var(--brand); display: grid; place-items: center; font-family: var(--serif); font-size: 16px; letter-spacing: 0; text-transform: none; }
+
+  .display { font-family: var(--serif); font-weight: 300; font-size: 40px; line-height: 1.15; letter-spacing: -.01em; }
+  .display em { font-style: italic; color: var(--accent); }
+  .lede { font-size: 16px; line-height: 1.6; opacity: .78; }
+  .grow { flex: 1; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; height: 56px; border-radius: 32px;
+    background: var(--brand-ink); color: var(--brand);
+    font-weight: 600; font-size: 16px;
+    transition: transform .2s ease, opacity .2s ease;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: transparent; color: inherit; border: 1px solid currentColor; opacity: .7; }
+  .link { font-size: 14px; opacity: .6; text-decoration: underline; text-underline-offset: 4px; padding: 8px; }
+
+  .chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 16px; border-radius: 16px; border: 1px solid rgba(244,239,230,.3); font-size: 13px; opacity: .8; }
+
+  /* 1. Sender */
+  #s-sender .avatar { width: 64px; height: 64px; border-radius: 32px; background: rgba(244,239,230,.12); display: grid; place-items: center; font-family: var(--serif); font-size: 24px; margin-bottom: 24px; }
+
+  /* 2. Pause */
+  #s-pause { padding: 0; align-items: center; justify-content: center; overflow: hidden; }
+  .progress { position: absolute; top: calc(var(--safe-t) + 16px); left: 24px; right: 24px; height: 2px; background: rgba(244,239,230,.12); border-radius: 2px; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: rgba(244,239,230,.5); }
+  .phase { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 32px; opacity: 0; transition: opacity 1.6s ease; }
+  .phase.on { opacity: 1; }
+  .orb-wrap { position: relative; width: 240px; height: 240px; display: grid; place-items: center; margin-bottom: 48px; }
+  .orb { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 40% 35%, rgba(231,182,107,.55), rgba(231,182,107,.08) 70%); transform: scale(.45); }
+  .orb.ring { background: none; border: 1px solid rgba(244,239,230,.18); transform: scale(1); }
+  .orb.breathe { animation: breathe 10s ease-in-out forwards; }
+  @keyframes breathe { 0% { transform: scale(.45); } 40% { transform: scale(1); } 100% { transform: scale(.45); } }
+  .breath-word { font-family: var(--serif); font-size: 24px; font-weight: 300; min-height: 32px; transition: opacity .8s ease; }
+  .look-up { font-family: var(--serif); font-weight: 300; font-size: 48px; line-height: 1.1; }
+  .look-up-sub { margin-top: 24px; font-size: 16px; line-height: 1.6; opacity: .7; max-width: 320px; }
+  .look-up-wrap { transform: translateY(24px); transition: transform 10s cubic-bezier(.2,.6,.2,1); }
+  .phase.on .look-up-wrap { transform: translateY(-24px); }
+  .skip { position: absolute; right: 16px; bottom: calc(var(--safe-b) + 16px); padding: 8px 16px; font-size: 13px; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+  .skip.on { opacity: .45; pointer-events: auto; }
+  .sound { position: absolute; left: 16px; bottom: calc(var(--safe-b) + 16px); padding: 8px 16px; font-size: 13px; opacity: .45; }
+
+  /* 3. Story (paper surface) */
+  #s-story { background: var(--paper); color: var(--ink); padding-top: 0; padding-left: 0; padding-right: 0; }
+  .media { position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 56dvh; background: linear-gradient(160deg, #1f5a55, var(--brand) 60%, #0b2524); display: grid; place-items: center; color: var(--brand-ink); flex-shrink: 0; }
+  .media .play { width: 64px; height: 64px; border-radius: 32px; background: rgba(244,239,230,.16); backdrop-filter: blur(8px); display: grid; place-items: center; }
+  .media .cap { position: absolute; left: 24px; bottom: 24px; right: 24px; font-size: 13px; opacity: .8; }
+  .story-body { padding: 32px 24px 0; }
+  .story-body .org { color: var(--brand); opacity: 1; margin-bottom: 16px; }
+  .story-body h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.2; margin-bottom: 16px; }
+  .story-body p { font-size: 16px; line-height: 1.65; color: var(--muted); margin-bottom: 16px; }
+  .story-actions { padding: 16px 24px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #s-story .btn { background: var(--brand); color: var(--brand-ink); }
+  #s-story .link { color: var(--ink); }
+  .explain { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 8px; }
+  .explain-title { font-family: var(--serif); font-size: 20px; line-height: 1.3; color: var(--ink); margin-bottom: 16px; }
+  .steps { list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 16px; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 24px 1fr; gap: 16px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .steps li::before { content: counter(s); width: 24px; height: 24px; border-radius: 12px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+  .steps b { color: var(--ink); font-weight: 600; }
+  .give-note { font-size: 13px; line-height: 1.5; opacity: .6; max-width: 280px; }
+
+  /* 4. Ending */
+  #s-end { text-align: center; }
+  #s-end .wrap { justify-content: center; align-items: center; }
+  #s-end .display { font-size: 48px; }
+
+  /* Gentle "used up" note */
+  #s-full .wrap { justify-content: center; }
+
+  /* Bottom sheet: donation */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity: 0; visibility: hidden; transition: opacity .4s ease, visibility 0s linear .4s; z-index: 10; }
+  .scrim.on { opacity: 1; visibility: visible; transition: opacity .4s ease; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 11;
+    max-width: 480px; margin: 0 auto;
+    background: var(--paper); color: var(--ink);
+    border-radius: 24px 24px 0 0;
+    padding: 8px 24px calc(var(--safe-b) + 24px);
+    transform: translateY(105%); transition: transform .5s cubic-bezier(.2,.8,.2,1);
+    max-height: 92dvh; overflow-y: auto;
+  }
+  .sheet.on { transform: none; }
+  .grabber { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 24px; }
+  .sheet h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.25; margin-bottom: 8px; }
+  .sheet .sub { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+  .amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .amt { height: 56px; border-radius: 16px; border: 1px solid var(--line); font-weight: 600; font-size: 16px; color: var(--ink); background: #fff; }
+  .amt.on { border-color: var(--brand); background: var(--brand); color: var(--brand-ink); }
+  .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .field label { font-size: 13px; font-weight: 500; color: var(--muted); padding-left: 8px; }
+  .field input { height: 56px; border-radius: 16px; border: 1px solid var(--line); padding: 0 16px; font-size: 16px; background: #fff; color: var(--ink); outline: none; }
+  .field input:focus { border-color: var(--brand); }
+  .field .hint { font-size: 12px; color: var(--muted); padding-left: 8px; }
+  .field .hint.err { color: #a2412b; }
+  .note { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 8px 0 24px; padding-left: 8px; }
+  .pay { display: flex; flex-direction: column; gap: 8px; }
+  .pay .btn { background: #000; color: #fff; }
+  .pay .btn.card { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .fine { text-align: center; font-size: 12px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+  /* Buyer screens (paper) */
+  .paper { background: var(--paper); color: var(--ink); }
+  .paper .org { color: var(--brand); opacity: 1; }
+  .paper .lede { color: var(--muted); opacity: 1; }
+  .paper .display em { color: var(--brand); }
+  .paper .btn { background: var(--brand); color: var(--brand-ink); }
+  .paper .link { color: var(--ink); }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 4px; border-radius: 24px; background: rgba(29,37,35,.06); margin: 32px 0; }
+  .seg button { height: 40px; border-radius: 24px; font-size: 14px; font-weight: 500; color: var(--muted); }
+  .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .send-big { width: 100%; height: 80px; border-radius: 40px; margin: 16px 0; background: var(--brand); color: var(--brand-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-family: var(--serif); font-size: 24px; box-shadow: 0 16px 48px rgba(18,60,58,.28); transition: transform .2s ease; }
+  .send-big:active { transform: scale(.98); }
+  .send-big small { line-height: 1; font-family: var(--sans); font-size: 13px; opacity: .7; }
+  .send-big[disabled] { opacity: .35; }
+  .dots { display: flex; justify-content: center; gap: 8px; margin: 16px 0 8px; }
+  .dots i { width: 8px; height: 8px; border-radius: 4px; background: var(--brand); }
+  .dots i.used { background: var(--line); }
+  .counter { text-align: center; color: var(--muted); font-size: 14px; }
+  .linkbox { display: flex; align-items: center; gap: 8px; height: 56px; border-radius: 16px; border: 1px solid var(--line); background: #fff; padding: 0 8px 0 16px; margin: 16px 0 8px; }
+  .linkbox code { flex: 1; font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--sans); }
+  .linkbox button { height: 40px; padding: 0 16px; border-radius: 16px; background: var(--brand); color: var(--brand-ink); font-size: 14px; font-weight: 600; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 32px 0 24px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .stat b { display: block; font-family: var(--serif); font-weight: 400; font-size: 32px; color: var(--ink); }
+  .stat span { font-size: 13px; color: var(--muted); }
+  .impact { font-family: var(--serif); font-size: 20px; line-height: 1.4; margin-bottom: 24px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(var(--safe-b) + 32px); transform: translate(-50%, 16px); background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 16px; font-size: 14px; opacity: 0; transition: all .3s ease; z-index: 30; pointer-events: none; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* Prototype-only state switcher */
+  .demo { position: fixed; top: calc(var(--safe-t) + 8px); right: 8px; z-index: 40; }
+  .demo > button { height: 32px; padding: 0 16px; border-radius: 16px; background: rgba(0,0,0,.35); color: #fff; font-size: 12px; font-weight: 600; backdrop-filter: blur(8px); }
+  .demo menu { display: none; position: absolute; right: 0; top: 40px; list-style: none; background: #fff; color: var(--ink); border-radius: 16px; padding: 8px; min-width: 224px; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+  .demo.open menu { display: block; }
+  .demo menu button { display: block; width: 100%; text-align: left; padding: 8px 16px; border-radius: 8px; font-size: 14px; }
+  .demo menu button:hover { background: rgba(0,0,0,.05); }
+  .demo menu hr { border: 0; border-top: 1px solid var(--line); margin: 8px 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen, .phase, .look-up-wrap { transition-duration: .01s !important; }
+    .orb.breathe { animation: none; transform: scale(.75); }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. Sender -->
+<section class="screen" id="s-sender">
+  <div class="wrap">
+    <div class="org"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <div class="grow"></div>
+    <div class="avatar" data-sender-initial></div>
+    <h1 class="display" id="sender-title"></h1>
+    <p class="lede" id="sender-sub" style="margin-top:16px"></p>
+    <div class="grow"></div>
+    <button class="btn" id="begin">Take the moment</button>
+    <p class="lede" style="text-align:center;font-size:13px;margin-top:16px">Thirty seconds. Sound optional.</p>
+  </div>
+</section>
+
+<!-- 2. Pause -->
+<section class="screen" id="s-pause">
+  <div class="progress"><i id="bar"></i></div>
+  <div class="phase" id="ph-breathe">
+    <div class="orb-wrap"><div class="orb ring"></div><div class="orb" id="orb"></div></div>
+    <p class="breath-word" id="breath-word"></p>
+    <p class="look-up-sub" id="breath-prompt" style="margin-top:16px"></p>
+  </div>
+  <div class="phase" id="ph-look">
+    <div class="look-up-wrap">
+      <p class="look-up">Look up<br>for more.</p>
+      <p class="look-up-sub" id="look-msg"></p>
+    </div>
+  </div>
+  <div class="phase" id="ph-bridge">
+    <div class="org" style="justify-content:center;margin-bottom:24px"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <p class="look-up-sub" style="margin-top:0;font-family:var(--serif);font-size:24px;opacity:.85;line-height:1.35" id="bridge-text"></p>
+  </div>
+  <button class="sound" id="sound">Sound off</button>
+  <button class="skip" id="skip">Skip</button>
+</section>
+
+<!-- 3. Story -->
+<section class="screen" id="s-story">
+  <div class="media" id="media">
+    <div class="play" aria-label="Play story video"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+    <p class="cap" id="media-cap"></p>
+  </div>
+  <div class="story-body">
+    <div class="org"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <h2 id="story-title"></h2>
+    <div id="story-text"></div>
+  </div>
+  <div class="grow"></div>
+  <div class="story-actions">
+    <div class="explain">
+      <p class="explain-title">Want to pass a moment like this on?</p>
+      <ol class="steps">
+        <li><span><b>Give <span data-base></span> or more</b> to <span data-org-name></span>. It's a donation, and it goes to their work.</span></li>
+        <li><span><b>Get 10 moments to share.</b> Each one is a private link, like the one you just opened.</span></li>
+        <li><span><b>Send them to friends</b> who could use a pause. You'll see how many were opened.</span></li>
+      </ol>
+    </div>
+    <button class="btn" data-open-give>Get your own shares</button>
+    <button class="link" id="to-end">Not now</button>
+  </div>
+</section>
+
+<!-- 4. Ending -->
+<section class="screen" id="s-end">
+  <div class="wrap">
+    <p class="display">Now look up.<br><em>Go be in the world.</em></p>
+    <div style="height:48px"></div>
+    <button class="link" data-open-give>Get your own shares</button>
+    <p class="give-note">Give <span data-base></span> or more to <span data-org-name></span> and get 10 moments like this one to send to friends.</p>
+  </div>
+</section>
+
+<!-- Group link used up -->
+<section class="screen" id="s-full">
+  <div class="wrap">
+    <div class="org"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <div class="grow"></div>
+    <h1 class="display">This one has been <em>passed all the way around.</em></h1>
+    <p class="lede" style="margin-top:16px" id="full-sub"></p>
+    <div class="grow"></div>
+    <button class="btn" data-open-give>Get your own shares</button>
+    <button class="link" style="margin:8px auto 0;display:block" id="full-anyway">Take a quiet moment anyway</button>
+  </div>
+</section>
+
+<!-- Buyer: send -->
+<section class="screen paper" id="s-send">
+  <div class="wrap">
+    <div class="org"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <h1 class="display" style="margin-top:32px;font-size:32px">Thank you, <span data-buyer-name></span>. <em>Pass it on.</em></h1>
+    <p class="lede" style="margin-top:8px" id="send-sub"></p>
+    <div class="seg" role="tablist">
+      <button class="on" data-mode="individual">One at a time</button>
+      <button data-mode="group">Group link</button>
+    </div>
+    <div id="mode-individual">
+      <button class="send-big" id="send-one">Send a moment<small>Opens your share sheet</small></button>
+      <div class="dots" id="dots"></div>
+      <p class="counter" id="counter"></p>
+    </div>
+    <div id="mode-group" hidden>
+      <p class="lede">One link for a group chat. It works for the first 10 people who open it.</p>
+      <div class="linkbox"><code id="group-url"></code><button id="share-group">Share</button></div>
+      <p class="counter" style="text-align:left;padding-left:8px" id="group-counter"></p>
+    </div>
+    <div class="grow"></div>
+    <button class="link" style="margin:24px auto 0;display:block" id="to-pack">See my pack</button>
+  </div>
+</section>
+
+<!-- Buyer: my pack (from receipt magic link) -->
+<section class="screen paper" id="s-pack">
+  <div class="wrap">
+    <div class="org"><span class="org-mark" data-org-initial></span><span data-org-name></span></div>
+    <h1 class="display" style="margin-top:32px;font-size:32px">Your pack</h1>
+    <div class="stats">
+      <div class="stat"><b id="pk-left"></b><span>shares left</span></div>
+      <div class="stat"><b id="pk-opens"></b><span>moments opened</span></div>
+    </div>
+    <p class="impact" id="pk-impact"></p>
+    <button class="btn" id="pk-send">Send a moment</button>
+    <div class="grow"></div>
+    <button class="link" style="margin:24px auto 0;display:block" data-open-give>Get another pack</button>
+  </div>
+</section>
+
+<!-- Donation sheet -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="give-title">
+  <div class="grabber"></div>
+  <h3 id="give-title"></h3>
+  <p class="sub">Your gift goes to <span data-org-name></span>. You'll get 10 moments to send to friends.</p>
+  <div class="amounts" id="amounts"></div>
+  <div class="field" id="custom-field" hidden>
+    <label for="custom">Your amount</label>
+    <input id="custom" inputmode="decimal" placeholder="">
+    <span class="hint" id="custom-hint"></span>
+  </div>
+  <div class="field">
+    <label for="fname">Your first name</label>
+    <input id="fname" autocomplete="given-name" placeholder="Shown to the people you send to">
+  </div>
+  <p class="note">Any amount gives you exactly 10 moments. Anything above <span data-base></span> is an extra donation.</p>
+  <div class="pay">
+    <button class="btn" id="pay-wallet"></button>
+    <button class="btn card" id="pay-card">Donate with card</button>
+  </div>
+  <p class="fine">Prototype: no payment is taken. Receipt and your pack link go to the email on your wallet.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="demo" id="demo">
+  <button id="demo-btn">States</button>
+  <menu>
+    <button data-go="first">Recipient, first open</button>
+    <button data-go="revisit">Recipient, revisit</button>
+    <button data-go="full">Group link used up</button>
+    <button data-go="circle">Giving circle link ($25 base)</button>
+    <hr>
+    <button data-go="send">Buyer, sending</button>
+    <button data-go="pack">Buyer, my pack</button>
+    <hr>
+    <button data-go="reset">Reset this device</button>
+  </menu>
+</div>
+
+<script>
+/* ---------- Tenant config (in v1 this comes from the Organization, Moment and PricingTier tables) ---------- */
+const ORG = {
+  name: "VIANYC",
+  initial: "V",
+  colors: { brand: "#123c3a", accent: "#e7b66b", paper: "#f4efe6" },
+  basePrice: 10,
+  quickPicks: [10, 25, 50],
+  tiers: { circle: { name: "Giving Circle", basePrice: 25, quickPicks: [25, 50, 100] } },
+};
+
+// Active content pool. First open gets the first moment; revisits rotate through the rest.
+const MOMENTS = [
+  {
+    breath: "Let your shoulders drop.",
+    message: "Somewhere near you, someone is starting over far from home.",
+    bridge: "Here's who your friend was thinking of.",
+    title: "Soporte entre Pares",
+    story: [
+      "Moving to a new country can be lonely. VIANYC's Soporte entre Pares program brings immigrants together in small peer groups to talk, listen and support each other, in their own language.",
+      "The peer leaders have been through it too. Your gift keeps these groups free and open to anyone who needs them.",
+    ],
+    video: "Inside a Soporte entre Pares circle",
+  },
+  {
+    breath: "Unclench your jaw. Breathe slow.",
+    message: "Who in your life is far from home right now?",
+    bridge: "One more thing, while you're here.",
+    title: "Nobody should carry it alone",
+    story: [
+      "Missing family, learning a new system, waiting on paperwork. The stress adds up, and many people have no one to tell.",
+      "In Soporte entre Pares, they find people who understand, and a place where it's safe to say how they really feel.",
+    ],
+    video: "A peer leader on why she started her group",
+  },
+  {
+    breath: "Feel your feet on the ground.",
+    message: "Look up. Who's near you right now?",
+    bridge: "A small story before you go.",
+    title: "From newcomer to peer leader",
+    story: [
+      "Many people who join a Soporte entre Pares group come back later to lead one. The support gets passed on, one person at a time.",
+      "Just like this moment you're passing on now.",
+    ],
+    video: "Two group members, one year later",
+  },
+];
+
+/* ---------- State ---------- */
+const params = new URLSearchParams(location.search);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("lufm:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("lufm:" + k, JSON.stringify(v)); } catch {} },
+  clear() { try { Object.keys(localStorage).filter(k => k.startsWith("lufm:")).forEach(k => localStorage.removeItem(k)); } catch {} },
+};
+
+const state = {
+  sender: params.get("from") || "Ronald",
+  tier: params.get("tier") || null,
+  visits: store.get("visits", 0),   // stands in for the recipient token + Open.open_count
+  pack: store.get("pack", null),    // { name, amount, sent, opens, group }
+  sound: false,
+  timers: [],
+};
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const pricing = () => (state.tier && ORG.tiers[state.tier]) || ORG;
+const money = n => "$" + (Number.isInteger(n) ? n : n.toFixed(2));
+const later = (fn, ms) => state.timers.push(setTimeout(fn, ms));
+const clearTimers = () => { state.timers.forEach(clearTimeout); state.timers = []; };
+const haptic = p => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+const slug = () => Math.random().toString(36).slice(2, 8);
+
+function show(id) {
+  $$(".screen").forEach(s => s.classList.toggle("on", s.id === id));
+  const paper = ["s-story", "s-send", "s-pack"].includes(id);
+  document.querySelector('meta[name="theme-color"]').content = paper ? ORG.colors.paper : ORG.colors.brand;
+  document.body.style.background = paper ? ORG.colors.paper : ORG.colors.brand;
+}
+
+let toastT;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2400);
+}
+
+/* ---------- Soft audio: a quiet sine swell that follows the breath ---------- */
+let ac, gain;
+function audioStart() {
+  if (!state.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), o2 = ac.createOscillator();
+    gain = ac.createGain();
+    o.frequency.value = 174; o2.frequency.value = 261.6; o.type = o2.type = "sine";
+    o.connect(gain); o2.connect(gain); gain.connect(ac.destination);
+    const t = ac.currentTime;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(.06, t + 4);   // inhale
+    gain.gain.linearRampToValueAtTime(.015, t + 10); // exhale
+    gain.gain.linearRampToValueAtTime(.03, t + 20);
+    gain.gain.linearRampToValueAtTime(0, t + 30);
+    o.start(t); o2.start(t); o.stop(t + 31); o2.stop(t + 31);
+    audioStart.nodes = [o, o2];
+  } catch {}
+}
+function audioStop() {
+  try { audioStart.nodes && audioStart.nodes.forEach(n => n.stop()); } catch {}
+  audioStart.nodes = null;
+}
+
+/* ---------- Recipient flow ---------- */
+function currentMoment() { return MOMENTS[state.visits % MOMENTS.length]; }
+
+function renderSender() {
+  const revisit = state.visits > 0;
+  $("[data-sender-initial]").textContent = state.sender[0].toUpperCase();
+  $("#sender-title").innerHTML = revisit
+    ? `${state.sender}'s moment <em>is still here.</em>`
+    : `${state.sender} sent you <em>a moment.</em>`;
+  $("#sender-sub").textContent = revisit
+    ? "Come back to it anytime. There's something new each visit."
+    : `A short break from the scroll, shared through ${ORG.name}.`;
+  show("s-sender");
+}
+
+function startPause() {
+  const m = currentMoment();
+  clearTimers();
+  $("#breath-prompt").textContent = m.breath;
+  $("#look-msg").textContent = m.message;
+  $("#bridge-text").textContent = m.bridge;
+  $$(".phase").forEach(p => p.classList.remove("on"));
+  $("#skip").classList.remove("on");
+  const orb = $("#orb"); orb.classList.remove("breathe"); void orb.offsetWidth;
+  const bar = $("#bar"); bar.style.transition = "none"; bar.style.width = "0";
+  show("s-pause");
+
+  later(() => { bar.style.transition = "width 30s linear"; bar.style.width = "100%"; }, 50);
+  // 0-10s: breathe in 4s, out 6s
+  later(() => { $("#ph-breathe").classList.add("on"); orb.classList.add("breathe"); $("#breath-word").textContent = "Breathe in"; haptic(40); audioStart(); }, 400);
+  later(() => { $("#breath-word").textContent = "And out"; haptic([20, 80, 20]); }, 4400);
+  later(() => $("#skip").classList.add("on"), 4000);
+  // 10-20s: Look up for more
+  later(() => { $("#ph-breathe").classList.remove("on"); $("#ph-look").classList.add("on"); }, 10000);
+  // 20-30s: bridge into the story
+  later(() => { $("#ph-look").classList.remove("on"); $("#ph-bridge").classList.add("on"); }, 20000);
+  later(finishPause, 30000);
+}
+
+function finishPause() {
+  clearTimers(); audioStop();
+  state.visits += 1; store.set("visits", state.visits);
+  renderStory();
+}
+
+function renderStory() {
+  // Visits was just bumped, so step back one to show the moment we breathed with.
+  const m = MOMENTS[(state.visits - 1 + MOMENTS.length) % MOMENTS.length];
+  $("#story-title").textContent = m.title;
+  $("#story-text").innerHTML = m.story.map(p => `<p>${p}</p>`).join("");
+  $("#media-cap").textContent = m.video;
+  $$("[data-base]").forEach(e => e.textContent = money(pricing().basePrice));
+  $("#s-story").scrollTop = 0;
+  show("s-story");
+}
+
+/* ---------- Donation sheet ---------- */
+let amount;
+function openGive() {
+  const p = pricing();
+  amount = p.quickPicks[0];
+  $("#give-title").textContent = state.tier ? `Join the ${p.name}` : `Give ${money(p.basePrice)} or more`;
+  $$("[data-base]").forEach(e => e.textContent = money(p.basePrice));
+  $("#custom").placeholder = `${money(p.basePrice)} minimum`;
+  $("#custom").value = ""; $("#custom-field").hidden = true; $("#custom-hint").textContent = "";
+  $("#amounts").innerHTML = p.quickPicks.map(v => `<button class="amt" data-v="${v}">${money(v)}</button>`).join("")
+    + `<button class="amt" data-v="custom">Other</button>`;
+  selectAmt(String(amount));
+  $("#scrim").classList.add("on"); $("#sheet").classList.add("on");
+}
+function closeGive() { $("#scrim").classList.remove("on"); $("#sheet").classList.remove("on"); }
+
+function selectAmt(v) {
+  $$(".amt").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  $("#custom-field").hidden = v !== "custom";
+  if (v === "custom") { $("#custom").focus(); amount = parseFloat($("#custom").value) || 0; }
+  else amount = Number(v);
+  updatePay();
+}
+function updatePay() {
+  const ok = amount >= pricing().basePrice;
+  $("#pay-wallet").textContent = ok ? `Donate ${money(amount)} with wallet` : "Donate with wallet";
+  $("#pay-card").textContent = ok ? `Donate ${money(amount)} with card` : "Donate with card";
+  return ok;
+}
+
+function pay() {
+  const base = pricing().basePrice;
+  if (!(amount >= base)) {
+    $("#custom-hint").textContent = `The minimum is ${money(base)}.`; $("#custom-hint").classList.add("err");
+    return;
+  }
+  const name = $("#fname").value.trim();
+  if (!name) { $("#fname").focus(); toast("Add your first name, it goes on your moments."); return; }
+  const btn = $("#pay-wallet"); btn.textContent = "Processing…"; btn.style.opacity = .6;
+  setTimeout(() => {
+    btn.style.opacity = 1;
+    state.pack = { name, amount, sent: 0, opens: 0, group: slug() };
+    store.set("pack", state.pack);
+    closeGive(); haptic(30);
+    renderSend();
+  }, 1200);
+}
+
+/* ---------- Buyer: send & pack ---------- */
+const MAX = 10;
+const left = () => MAX - state.pack.sent;
+const linkFor = s => `${location.origin}${location.pathname}?m=${s}&from=${encodeURIComponent(state.pack.name)}`;
+
+function renderSend() {
+  const p = state.pack;
+  $$("[data-buyer-name]").forEach(e => e.textContent = p.name);
+  $("#send-sub").textContent = `Your ${money(p.amount)} went to ${ORG.name}. You have ${left()} moments to send.`;
+  $("#dots").innerHTML = Array.from({ length: MAX }, (_, i) => `<i class="${i < p.sent ? "used" : ""}"></i>`).join("");
+  $("#counter").textContent = left() ? `${left()} left` : "All 10 sent. Thank you.";
+  $("#send-one").disabled = !left();
+  $("#group-url").textContent = linkFor("g-" + p.group).replace(/^https?:\/\//, "");
+  $("#group-counter").textContent = `${p.opens} of ${MAX} opened so far`;
+  show("s-send");
+}
+
+async function share(url) {
+  const data = { title: `${state.pack.name} sent you a moment`, text: `A short break from the scroll, from ${ORG.name}.`, url };
+  try {
+    if (navigator.share) { await navigator.share(data); return true; }
+    await navigator.clipboard.writeText(url); toast("Link copied. Paste it anywhere."); return true;
+  } catch (e) {
+    if (e && e.name === "AbortError") return false; // user closed the share sheet
+    // Share sheet refused (desktop, sandboxed frames): copy instead.
+    try { await navigator.clipboard.writeText(url); toast("Link copied. Paste it anywhere."); }
+    catch { toast("Your link is ready to send."); }
+    return true;
+  }
+}
+
+async function sendOne() {
+  if (!left()) return;
+  const ok = await share(linkFor(slug()));
+  if (!ok) return;
+  state.pack.sent += 1; store.set("pack", state.pack);
+  haptic(20); renderSend();
+}
+
+function renderPack() {
+  const p = state.pack;
+  $("#pk-left").textContent = `${left()} of ${MAX}`;
+  $("#pk-opens").textContent = p.opens;
+  $("#pk-impact").textContent = `You've given ${money(p.amount)} to ${ORG.name}.`;
+  show("s-pack");
+}
+
+function ensurePack() {
+  if (!state.pack) { state.pack = { name: "Ronald", amount: 25, sent: 3, opens: 2, group: slug() }; store.set("pack", state.pack); }
+}
+
+/* ---------- Wiring ---------- */
+function applyTenant() {
+  const r = document.documentElement.style;
+  r.setProperty("--brand", ORG.colors.brand);
+  r.setProperty("--accent", ORG.colors.accent);
+  r.setProperty("--paper", ORG.colors.paper);
+  $$("[data-org-name]").forEach(e => e.textContent = ORG.name);
+  $$("[data-base]").forEach(e => e.textContent = money(ORG.basePrice));
+  $$("[data-org-initial]").forEach(e => e.textContent = ORG.initial);
+  $("#full-sub").textContent = `All 10 moments from this link have been opened. You can still give to ${ORG.name} and start your own.`;
+}
+
+$("#begin").onclick = () => { startPause(); };
+$("#skip").onclick = finishPause;
+$("#sound").onclick = () => {
+  state.sound = !state.sound;
+  $("#sound").textContent = state.sound ? "Sound on" : "Sound off";
+  state.sound ? audioStart() : audioStop();
+};
+$("#to-end").onclick = () => show("s-end");
+$("#full-anyway").onclick = () => renderSender();
+$$("[data-open-give]").forEach(b => b.onclick = openGive);
+$("#scrim").onclick = closeGive;
+$("#amounts").onclick = e => { const b = e.target.closest(".amt"); if (b) selectAmt(b.dataset.v); };
+$("#custom").oninput = e => { amount = parseFloat(e.target.value) || 0; $("#custom-hint").textContent = ""; $("#custom-hint").classList.remove("err"); updatePay(); };
+$("#pay-wallet").onclick = pay;
+$("#pay-card").onclick = pay;
+$$(".seg button").forEach(b => b.onclick = () => {
+  $$(".seg button").forEach(x => x.classList.toggle("on", x === b));
+  $("#mode-individual").hidden = b.dataset.mode !== "individual";
+  $("#mode-group").hidden = b.dataset.mode !== "group";
+});
+$("#send-one").onclick = sendOne;
+$("#share-group").onclick = () => share(linkFor("g-" + state.pack.group));
+$("#to-pack").onclick = renderPack;
+$("#pk-send").onclick = renderSend;
+
+$("#demo-btn").onclick = () => $("#demo").classList.toggle("open");
+$("#demo menu").onclick = e => {
+  const go = e.target.dataset.go; if (!go) return;
+  $("#demo").classList.remove("open"); clearTimers(); audioStop(); closeGive();
+  state.tier = null;
+  if (go === "first") { state.visits = 0; store.set("visits", 0); renderSender(); }
+  if (go === "revisit") { state.visits = Math.max(1, state.visits); store.set("visits", state.visits); renderSender(); }
+  if (go === "full") show("s-full");
+  if (go === "circle") { state.tier = "circle"; renderStory(); openGive(); }
+  if (go === "send") { ensurePack(); renderSend(); }
+  if (go === "pack") { ensurePack(); renderPack(); }
+  if (go === "reset") { store.clear(); state.visits = 0; state.pack = null; renderSender(); toast("Device reset. You're a new recipient."); }
+};
+
+applyTenant();
+if (params.get("state") === "full") show("s-full");
+else renderSender();
+</script>
+</body>
+</html>
